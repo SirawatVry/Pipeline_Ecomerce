@@ -1,6 +1,0 @@
-/logs
-/data
-dbt_ecommerce/logs
-dbt_ecommerce/target
-dags/__pycache__
-kaggle.json
