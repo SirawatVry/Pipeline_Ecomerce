@@ -1,10 +1,8 @@
-Set-Content -Path "README.md" -Encoding utf8 -Value "# E-Commerce ETL Pipeline
-
 ## Overview
 End-to-end Data Engineering project สร้าง Modern Data Stack ด้วย Apache Airflow, dbt, PostgreSQL และ Metabase โดยใช้ข้อมูล E-Commerce จริงจาก Kaggle
 
 ## Architecture
-\`\`\`
+
 Kaggle API
     ↓
 Apache Airflow (Orchestration)
@@ -16,7 +14,7 @@ PostgreSQL (Data Warehouse)
 dbt (Transformation + Quality Test)
     ↓
 Metabase (Dashboard)
-\`\`\`
+
 
 ## Tech Stack
 | Tool | Version | Purpose |
