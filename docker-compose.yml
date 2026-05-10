@@ -33,6 +33,7 @@ services:
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./data:/opt/airflow/data
+      - ./dbt_ecommerce:/opt/airflow/dbt_ecommerce
     ports:
       - "8080:8080"
     command: webserver
@@ -44,11 +45,13 @@ services:
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      PATH: /home/airflow/.local/bin:/usr/local/bin:/usr/bin:/bin
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./data:/opt/airflow/data
+      - ./dbt_ecommerce:/opt/airflow/dbt_ecommerce  
     command: scheduler
     
   metabase:

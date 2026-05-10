@@ -3,6 +3,7 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime
 import pandas as pd
 import psycopg2
+from airflow.operators.bash import BashOperator
 
 default_args = {
     'owner': 'airflow',
@@ -15,7 +16,7 @@ def extract(**context):
         encoding='ISO-8859-1'
     )
     df.to_parquet('/opt/airflow/data/raw.parquet', index=False)
-    print(f"✅ Extracted {len(df)} rows")
+    print(f"Extracted {len(df)} rows")
 
 def transform(**context):
     df = pd.read_parquet('/opt/airflow/data/raw.parquet')
@@ -27,7 +28,7 @@ def transform(**context):
     df['InvoiceMonth'] = df['InvoiceDate'].dt.to_period('M').astype(str)
     df['CustomerID'] = df['CustomerID'].astype(int)
     df.to_parquet('/opt/airflow/data/clean.parquet', index=False)
-    print(f"✅ Transformed {len(df)} rows")
+    print(f"Transformed {len(df)} rows")
 
 def load(**context):
     df = pd.read_parquet('/opt/airflow/data/clean.parquet')
@@ -67,7 +68,7 @@ def load(**context):
     conn.commit()
     cur.close()
     conn.close()
-    print(f"✅ Loaded {len(df)} rows to PostgreSQL")
+    print(f"Loaded {len(df)} rows to PostgreSQL")
 
 def transform_tables(**context):
     conn = psycopg2.connect(
@@ -89,7 +90,7 @@ def transform_tables(**context):
         GROUP BY invoice_month
         ORDER BY invoice_month
     """)
-    print("✅ monthly_revenue created")
+    print("monthly_revenue created")
 
     # 2. สินค้าขายดี Top 20
     cur.execute("DROP TABLE IF EXISTS top_products")
@@ -106,7 +107,7 @@ def transform_tables(**context):
         ORDER BY total_revenue DESC
         LIMIT 20
     """)
-    print("✅ top_products created")
+    print("top_products created")
 
     # 3. ลูกค้าดีที่สุด Top 20
     cur.execute("DROP TABLE IF EXISTS top_customers")
@@ -124,7 +125,7 @@ def transform_tables(**context):
         ORDER BY total_spent DESC
         LIMIT 20
     """)
-    print("✅ top_customers created")
+    print("top_customers created")
 
     # 4. ประเทศที่ขายดี
     cur.execute("DROP TABLE IF EXISTS sales_by_country")
@@ -139,12 +140,12 @@ def transform_tables(**context):
         GROUP BY country
         ORDER BY total_revenue DESC
     """)
-    print("✅ sales_by_country created")
+    print("sales_by_country created")
 
     conn.commit()
     cur.close()
     conn.close()
-    print("\n🎉 All summary tables created!")
+    print("\nAll summary tables created!")
 
 def summarize(**context):
     conn = psycopg2.connect(
@@ -153,22 +154,22 @@ def summarize(**context):
     )
     cur = conn.cursor()
 
-    print("\n📊 Monthly Revenue:")
+    print("\nMonthly Revenue:")
     cur.execute("SELECT * FROM monthly_revenue")
     for row in cur.fetchall():
         print(row)
 
-    print("\n🏆 Top 5 Products:")
+    print("\nTop 5 Products:")
     cur.execute("SELECT description, total_revenue FROM top_products LIMIT 5")
     for row in cur.fetchall():
         print(row)
 
-    print("\n👑 Top 5 Customers:")
+    print("\nTop 5 Customers:")
     cur.execute("SELECT customer_id, total_spent FROM top_customers LIMIT 5")
     for row in cur.fetchall():
         print(row)
 
-    print("\n🌍 Top 5 Countries:")
+    print("\nTop 5 Countries:")
     cur.execute("SELECT country, total_revenue FROM sales_by_country LIMIT 5")
     for row in cur.fetchall():
         print(row)
@@ -186,7 +187,15 @@ with DAG(
     t1 = PythonOperator(task_id='extract', python_callable=extract)
     t2 = PythonOperator(task_id='transform', python_callable=transform)
     t3 = PythonOperator(task_id='load', python_callable=load)
-    t4 = PythonOperator(task_id='transform_tables', python_callable=transform_tables)
-    t5 = PythonOperator(task_id='summarize', python_callable=summarize)
+    # t4 = PythonOperator(task_id='transform_tables', python_callable=transform_tables)
+    # t5 = PythonOperator(task_id='summarize', python_callable=summarize)
+    dbt_run = BashOperator(
+        task_id='dbt_run',
+        bash_command='cd /opt/airflow/dbt_ecommerce && dbt run',
+    )
+    dbt_test = BashOperator(
+    task_id='dbt_test',
+    bash_command='cd /opt/airflow/dbt_ecommerce && dbt test',
+    )
 
-    t1 >> t2 >> t3 >> t4 >> t5
+    t1 >> t2 >> t3 >> dbt_run >> dbt_test
