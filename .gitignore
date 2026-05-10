@@ -1,2 +1,6 @@
 /logs
 /data
+dags/__pycache__
+dbt_ecommerce/target
+dbt_ecommerce/logs
+kaggle.json

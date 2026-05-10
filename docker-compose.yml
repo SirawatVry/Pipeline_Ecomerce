@@ -52,7 +52,7 @@ services:
       - ./plugins:/opt/airflow/plugins
       - ./data:/opt/airflow/data
       - ./dbt_ecommerce:/opt/airflow/dbt_ecommerce  
-    command: scheduler
+    command: bash -c "pip install dbt-postgres && airflow scheduler"
     
   metabase:
     image: metabase/metabase:latest

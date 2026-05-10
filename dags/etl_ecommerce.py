@@ -191,11 +191,12 @@ with DAG(
     # t5 = PythonOperator(task_id='summarize', python_callable=summarize)
     dbt_run = BashOperator(
         task_id='dbt_run',
-        bash_command='cd /opt/airflow/dbt_ecommerce && dbt run',
+        bash_command='/home/airflow/.local/bin/dbt run --profiles-dir /home/airflow/.dbt --project-dir /opt/airflow/dbt_ecommerce',
     )
+
     dbt_test = BashOperator(
-    task_id='dbt_test',
-    bash_command='cd /opt/airflow/dbt_ecommerce && dbt test',
+        task_id='dbt_test',
+        bash_command='/home/airflow/.local/bin/dbt test --profiles-dir /home/airflow/.dbt --project-dir /opt/airflow/dbt_ecommerce',
     )
 
     t1 >> t2 >> t3 >> dbt_run >> dbt_test
