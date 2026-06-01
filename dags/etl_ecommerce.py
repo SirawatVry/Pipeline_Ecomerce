@@ -198,5 +198,5 @@ with DAG(
         task_id='dbt_test',
         bash_command='/home/airflow/.local/bin/dbt test --profiles-dir /home/airflow/.dbt --project-dir /opt/airflow/dbt_ecommerce',
     )
-
+ 
     t1 >> t2 >> t3 >> dbt_run >> dbt_test
