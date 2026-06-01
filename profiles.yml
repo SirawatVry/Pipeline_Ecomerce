@@ -10,5 +10,5 @@ dbt_ecommerce:
       dbname: airflow
       schema: public
       threads: 1
-
+ 
 
